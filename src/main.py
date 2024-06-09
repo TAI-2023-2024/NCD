@@ -6,6 +6,7 @@ import gzip
 import bz2
 from pprint import pp
 import subprocess
+import songs_handling
 
 # DECLARATIONS
 available_compressors=[
@@ -27,8 +28,11 @@ GetMaxFreqs = os.path.realpath(__file__).replace("src\\"+os.path.basename(__file
 flags={
     "Process" : 1, # 0: generate Database, 1:Classify input file
     "Compressor": available_compressors[0],
-    "wavFile": progPATHS["Database"] + "\\" +  "Adeste-Fideles-Shorter.wav"
-}
+    "wavFile": progPATHS["Database"] + "\\" +  "Adeste-Fideles-Shorter.wav",
+    "sampleStart": 0.3, # percentage of duration of the sample
+    "sampleDuration": 10, # time in seconds. When 0 it uses the full wavFile as the sample file
+    "noiseLevel": 1 #percentage of noise
+ }
 
 # SIGNATURES
 def sig_file_name (wav_filename, p=temp):
@@ -38,7 +42,9 @@ def getmaxfreqs_signatures(filename, p = temp):
     if(str(filename).endswith(".wav") and os.path.exists(filename)):
         sigFile = sig_file_name(filename,p)
         cmd = [GetMaxFreqs, "-w", sigFile, os.path.realpath(filename)]
-        if(subprocess.run(cmd)==0):
+        r = subprocess.run(cmd)
+        print(r)
+        if(r.returncode==0):
             return [0,sigFile]
         else:
             return [1,f"File not found. Please check if the file exists and if it is a WAV file. [FILE: {filename}]"]
@@ -107,16 +113,58 @@ def main():
     #     "bz2"
     # ]
 
-    #create signature file
-    
-    sample_file = flags["wavFile"]
+    audio_file = flags["wavFile"]
+    afn = os.path.basename(audio_file)
+    sample_file = ""
+    sfn = ""
+
+    alg = flags["Compressor"]
+    sampleStart = flags["sampleStart"]
+    sampleDuration = flags["sampleDuration"]
+    noiseLevel = float(flags["noiseLevel"]*0.5)
+
+    #get sample from input
+    if(sampleDuration>0): 
+        audioprocessor = songs_handling.AudioProcessor(audio_file,None)    
+        duration = audioprocessor._get_audio_duration()
+        segment_start_time = round(flags["sampleStart"]*duration)
+        segment_duration = int(min(flags["sampleDuration"], duration - segment_start_time))
+        segment_filename = str(afn)
+        segment_filename = segment_filename.replace(".wav",f"_s{segment_start_time}_d{segment_duration}.wav") 
+        segment_file = os.path.join(progPATHS["temp"], segment_filename)
+        audioprocessor.output_audio = segment_file
+        audioprocessor._extract_segment(start_time=segment_start_time, duration=segment_duration)
+
+        # Add noise to the segment
+        if(os.path.exists(segment_file)): 
+            if(flags["noiseLevel"]>0):
+                noised_output_file = segment_file
+                noised_output_file = noised_output_file.replace(".wav",f"_n{int(flags["noiseLevel"]*100)}.wav")
+                noise_processor = songs_handling.AudioProcessor(segment_file, noised_output_file)
+                noise_processor._add_noise(noise_duration=segment_duration, noise_level=noiseLevel)
+                if(os.path.exists(noised_output_file)):
+                    sample_file = noised_output_file
+                else:
+                    return [1,f"Error while adding noise to the segment of audio file {audio_file}"]        
+            else:
+                sample_file = segment_file
+        else:
+            return [1,f"Error while generating segment of audio file {audio_file}"]
+        
+    else:
+        sample_file = audio_file
+
+    # Final Sample Definition
     sfn = os.path.basename(sample_file)
 
+    #create signature file
     if (not(os.path.exists(sample_file))):
         return [1, f"Sample File not found [{sample_file}]"]
     
-    getmaxfreqs_signatures(sample_file)
-
+    r=getmaxfreqs_signatures(sample_file)
+    if(r[0] != 0):
+        return r
+    
     #scores = list()
     scores = {
         "byScore" : dict(), #key=score: value=filename
@@ -136,15 +184,14 @@ def main():
             #         for alg in available_compressors
             #     }
             # })
-            alg = flags["Compressor"]
             s = ncd(sample_to_predict, train_binary, globals()[f"compress_{alg}"])
             scores["byScore"][s] = file.removesuffix('.sig')
-            if scores["byScore"][s] == sfn:
+            if scores["byScore"][s] == afn:
                 scores["byFile"] = s
             
-    # delete temporary signature file
-    os.remove(sig_file_name(sample_file))
-
+    # delete temporary files
+    for f in os.listdir(progPATHS[temp]):
+        os.remove(progPATHS[temp]+"\\"+f)
 
     # results = dict()
     # # Find the smallest distance according to each algorithm
@@ -155,8 +202,8 @@ def main():
     res = []
     return [
         0,
-        f'''Guessing file {sfn} with {flags['Compressor']} compression:
-        - Original file: {sfn} (NCD score: {scores['byFile']})
+        f'''Guessing file {afn} with {flags['Compressor']} compression:
+        - Original file: {afn} (NCD score: {scores['byFile']})
         - Guessed file: {scores['byScore'][ncdBestScore]} (NCD score: {ncdBestScore})'''
         ]
 

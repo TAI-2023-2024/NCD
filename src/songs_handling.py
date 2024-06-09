@@ -53,7 +53,7 @@ class AudioProcessor:
         except subprocess.CalledProcessError as e:
             print(f"Error during segment extraction: {e}")
 
-    def _add_noise(self, noise_duration=10, noise_level=0.70):
+    def _add_noise(self, noise_duration=10, noise_level=0.05):
         """
         Add noise to an audio file using SoX.
 
@@ -77,11 +77,13 @@ class AudioProcessor:
             # Generate the noise file
             noise_file = 'whitenoise.wav'
             print("Generating noise...")
-            subprocess.run(['sox', '-n', '-r', sample_rate, '-c', channels, noise_file, 'synth', str(noise_duration), 'whitenoise', 'vol', '0.3'], check=True)
+            #subprocess.run(['sox', '-n', '-r', sample_rate, '-c', channels, noise_file, 'synth', str(noise_duration), 'whitenoise', 'vol', '0.3'], check=True)
+            subprocess.run(['sox', '-n', '-r', sample_rate, '-c', channels, noise_file, 'synth', str(noise_duration), 'whitenoise', 'vol', str(noise_level)], check=True)
 
             # Mix noise with the original audio
             print("Mixing noise with original audio...")
-            subprocess.run(['sox', '-m', self.input_audio, noise_file, self.output_audio, 'vol', str(noise_level)], check=True)
+            #subprocess.run(['sox', '-m', self.input_audio, noise_file, self.output_audio, 'vol', str(noise_level)], check=True)
+            subprocess.run(['sox', '-m', self.input_audio, noise_file, self.output_audio], check=True)
 
             # Clean up the noise file
             print("Cleaning up...")
