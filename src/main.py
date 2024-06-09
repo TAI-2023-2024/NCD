@@ -16,7 +16,7 @@ available_compressors=[
     ]
 
 flags={
-    "Process" : 0, # 0: generate Database, 1:Classify input file
+    "Process" : 1, # 0: generate Database, 1:Classify input file
     "Compressor": available_compressors[0]
 }
 
@@ -107,37 +107,66 @@ def main():
     #     "bz2"
     # ]
 
+    #create signature file
+    
+    sample_file = progPATHS["Database"] + "\\" +  "Adeste-Fideles-Shorter.wav"
+    sfn = os.path.basename(sample_file)
 
-    scores = list()
+    if (not(os.path.exists(sample_file))):
+        return [1, f"Sample File not found [{sample_file}]"]
+    
+    getmaxfreqs_signatures(sample_file)
+
+    #scores = list()
+    scores = {
+        "byScore" : dict(), #key=score: value=filename
+        "byFile"  : 1 #score with the real file signature compression
+    } 
     # read signature file to predict
-    sample_to_predict = open("../sample07.wav.sig", "rb").read()
-    dataset = "../Data/"
-    for file in os.listdir(dataset):
+    sample_to_predict = open(sig_file_name(sample_file), "rb").read()
+    #dataset = "../Data/"
+    for file in os.listdir(progPATHS[Signatures]):
         if file.endswith(".sig"):
-            train_binary = open(dataset + file, "rb").read()
-            # For each algorithm, calculate the NCD
-            scores.append({
-                "file": file,
-                **{
-                    alg: ncd(sample_to_predict, train_binary, globals()[f"compress_{alg}"])
-                    for alg in available_compressors
-                }
-            })
+            train_binary = open(progPATHS[Signatures]+"\\"+file, "rb").read()
+            # # For each algorithm, calculate the NCD
+            # scores.append({
+            #     "file": file,
+            #     **{
+            #         alg: ncd(sample_to_predict, train_binary, globals()[f"compress_{alg}"])
+            #         for alg in available_compressors
+            #     }
+            # })
+            alg = flags["Compressor"]
+            s = ncd(sample_to_predict, train_binary, globals()[f"compress_{alg}"])
+            scores["byScore"][s] = file.removesuffix('.sig')
+            if scores["byScore"][s] == sfn:
+                scores["byFile"] = s
+            
 
-    results = dict()
-    # Find the smallest distance according to each algorithm
-    for alg in available_compressors:
-        results[alg] = sorted(scores, key=lambda res: res[alg])[0]["file"]
-    pp(results)
 
 
+    # results = dict()
+    # # Find the smallest distance according to each algorithm
+    # for alg in available_compressors:
+    #     results[alg] = sorted(scores, key=lambda res: res[alg])[0]["file"]
+    # pp(results)
+    ncdBestScore = sorted(list(dict(scores["byScore"]).keys()))[0]
+    res = []
+    return [
+        0,
+        f'''Guessing file {sfn} with {flags['Compressor']} compression:
+        - Original file: {sfn} (NCD score: {scores['byFile']})
+        - Guessed file: {scores['byScore'][ncdBestScore]} (NCD score: {ncdBestScore})'''
+        ]
 if __name__ == "__main__":
     
     
-
+    result = []
     match flags["Process"]:
         case 0:
-            gen_database()
-        case _,1:
-            main()
+            result = gen_database()
+        case 1:
+            result = main()
+
+    print (result[1])
             
