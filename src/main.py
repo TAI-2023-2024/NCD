@@ -204,7 +204,8 @@ def main():
         0,
         f'''Guessing file {afn} with {flags['Compressor']} compression:
         - Original file: {afn} (NCD score: {scores['byFile']})
-        - Guessed file: {scores['byScore'][ncdBestScore]} (NCD score: {ncdBestScore})'''
+        - Guessed file: {scores['byScore'][ncdBestScore]} (NCD score: {ncdBestScore})''',
+        f"{afn},{scores['byScore'][ncdBestScore]},{ncdBestScore},{alg},{sampleStart},{sampleDuration},{noiseLevel}"
         ]
 
 
