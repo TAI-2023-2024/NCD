@@ -205,7 +205,7 @@ def main():
         f'''Guessing file {afn} with {flags['Compressor']} compression:
         - Original file: {afn} (NCD score: {scores['byFile']})
         - Guessed file: {scores['byScore'][ncdBestScore]} (NCD score: {ncdBestScore})''',
-        f"{afn},{scores['byScore'][ncdBestScore]},{ncdBestScore},{alg},{sampleStart},{sampleDuration},{noiseLevel}"
+        f"{afn},{scores['byScore'][ncdBestScore]},{scores['byFile']},{ncdBestScore},{alg},{sampleStart},{sampleDuration},{noiseLevel}"
         ]
 
 
@@ -219,6 +219,8 @@ if __name__ == "__main__":
             result = gen_database()
         case 1:
             result = main()
+            pp(result[2])
 
     print (result[1])
+    
             
