@@ -14,12 +14,6 @@ available_compressors=[
         "gzip",
         "bz2"
     ]
-
-flags={
-    "Process" : 1, # 0: generate Database, 1:Classify input file
-    "Compressor": available_compressors[0]
-}
-
 data_path = os.path.realpath(__file__).replace("src\\"+os.path.basename(__file__),"Data\\")
 Database = "Database"
 temp = "temp"
@@ -29,10 +23,14 @@ progPATHS = {
     "temp": data_path+temp,
     "Signatures": data_path+Signatures
 }
-
 GetMaxFreqs = os.path.realpath(__file__).replace("src\\"+os.path.basename(__file__),"GetMaxFreqs\\bin\\GetMaxFreqs.exe")
+flags={
+    "Process" : 1, # 0: generate Database, 1:Classify input file
+    "Compressor": available_compressors[0],
+    "wavFile": progPATHS["Database"] + "\\" +  "Adeste-Fideles-Shorter.wav"
+}
 
-# Signatures
+# SIGNATURES
 def sig_file_name (wav_filename, p=temp):
     return progPATHS[p] + "\\"+ os.path.basename(wav_filename) + ".sig"
 
@@ -47,6 +45,7 @@ def getmaxfreqs_signatures(filename, p = temp):
     else:
         return [1,"Error"]
 
+# DATABASE
 def gen_database():
     #generate signatures
     ls=list(filter(lambda f : f.endswith(".wav"), list(os.listdir(progPATHS[Database]))))
@@ -65,6 +64,7 @@ def gen_database():
         return [1,f"DATABASE: Signature files not generated for all Database files"]
     else:
         return [0,"OK"]
+
 
 # different functions C for NCD
 @ft.lru_cache()
@@ -109,7 +109,7 @@ def main():
 
     #create signature file
     
-    sample_file = progPATHS["Database"] + "\\" +  "Adeste-Fideles-Shorter.wav"
+    sample_file = flags["wavFile"]
     sfn = os.path.basename(sample_file)
 
     if (not(os.path.exists(sample_file))):
@@ -142,7 +142,8 @@ def main():
             if scores["byScore"][s] == sfn:
                 scores["byFile"] = s
             
-
+    # delete temporary signature file
+    os.remove(sig_file_name(sample_file))
 
 
     # results = dict()
@@ -158,9 +159,12 @@ def main():
         - Original file: {sfn} (NCD score: {scores['byFile']})
         - Guessed file: {scores['byScore'][ncdBestScore]} (NCD score: {ncdBestScore})'''
         ]
+
+
 if __name__ == "__main__":
-    
-    
+    #Parse arguments
+
+    #Program Execussion
     result = []
     match flags["Process"]:
         case 0:
