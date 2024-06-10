@@ -10,7 +10,9 @@ To generate the database by creating signatures for all WAV files in the Data/Da
 python music_identification.py 0 <compressor> <wavFile>
 ```
 **(Process) 0:** Process to generate the database
+
 **compressor:** Choose the compressor (zlib, lzma, gzip, bz2)
+
 **wavFile:** Path to a WAV file (required argument but not used in this mode)
 
 **Example:**
