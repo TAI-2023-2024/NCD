@@ -142,9 +142,3 @@ class DatabaseProcessor:
                         noise_processor = AudioProcessor(segment_output_file, noised_output_file)
                         noise_processor._add_noise(noise_duration=min(self.segment_duration, duration - start_time), noise_level=self.noise_level)
 
-# Example usage
-database_directory = '../Data/Database'
-output_directory = '../Data/Processed'
-
-db_processor = DatabaseProcessor(database_directory, output_directory, segment_duration=10, noise_level=0.70)
-db_processor.process_database()

@@ -27,7 +27,7 @@ progPATHS = {
 GetMaxFreqs = os.path.realpath(__file__).replace("src\\"+os.path.basename(__file__),"GetMaxFreqs\\bin\\GetMaxFreqs.exe")
 flags={
     "Process" : 1, # 0: generate Database, 1:Classify input file
-    "Compressor": available_compressors[0],
+    "Compressor": available_compressors[1],
     "wavFile": progPATHS["Database"] + "\\" +  "Adeste-Fideles-Shorter.wav",
     "sampleStart": 0.3, # percentage of duration of the sample
     "sampleDuration": 10, # time in seconds. When 0 it uses the full wavFile as the sample file
