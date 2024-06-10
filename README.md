@@ -7,20 +7,20 @@ Generate the Database:
 
 To generate the database by creating signatures for all WAV files in the Data/Database directory:
 ```
-python taizam.py 0
+python taizam.py <process_number>
 ```
 **(Process) 0:** Process to generate the database
 
 **Example:**
 ```
-python taizam.py 0 bz2 "Data/Database/cozycoffeehouse.wav"
+python taizam.py 0
 ```
 
 **Classify Input File**
 To classify an input WAV file based on the generated database:
 
 ```
-python taizam.py 1 <compressor> <wavFile> --sampleStart <sampleStart> --sampleDuration <sampleDuration> --noiseLevel <noiseLevel>
+python taizam.py <process_number> <compressor> <wavFile> --sampleStart <sampleStart> --sampleDuration <sampleDuration> --noiseLevel <noiseLevel>
 ```
 **(Process) 1:** Process to classify the input file
 
