@@ -23,8 +23,6 @@ progPATHS = {
 }
 GetMaxFreqs = os.path.realpath(__file__).replace("src\\" + os.path.basename(__file__), "GetMaxFreqs\\bin\\GetMaxFreqs.exe")
 
-
-
 # SIGNATURES
 def sig_file_name(wav_filename, p=temp):
     return progPATHS[p] + "\\" + os.path.basename(wav_filename) + ".sig"
@@ -90,7 +88,7 @@ def ncd(sample, train_sample, fn):
     # formula
     return (cxy - min(cx, cy)) / max(cx, cy)
 
-def main(process, compressor, wavFile, sampleStarts, sampleDurations, noiseLevels):
+def main(process, compressor=None, wavFile=None, sampleStarts=None, sampleDurations=None, noiseLevels=None):
     if process == 0:
         return gen_database()
     
@@ -184,15 +182,26 @@ def main(process, compressor, wavFile, sampleStarts, sampleDurations, noiseLevel
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Music Identification using NCD")
-    parser.add_argument("process", type=int, choices=[0, 1], help="0 to generate Database, 1 to classify input file")
-    parser.add_argument("compressor", choices=available_compressors, help="Compressor algorithm to use")
-    parser.add_argument("wavFile", help="Path to the WAV file to process")
-    parser.add_argument("--sampleStart", type=float, nargs='+', default=[0.3], help="Percentage(s) of duration of the sample")
-    parser.add_argument("--sampleDuration", type=int, nargs='+', default=[10], help="Time(s) in seconds for the sample duration")
-    parser.add_argument("--noiseLevel", type=float, nargs='+', default=[1.0], help="Percentage(s) of noise to add")
+
+    subparsers = parser.add_subparsers(dest="process", required=True)
+
+    # Subparser for generating database
+    parser_gen = subparsers.add_parser('0', help='Generate Database')
+    
+    # Subparser for classifying input file
+    parser_classify = subparsers.add_parser('1', help='Classify input file')
+    parser_classify.add_argument("compressor", choices=available_compressors, help="Compressor algorithm to use")
+    parser_classify.add_argument("wavFile", help="Path to the WAV file to process")
+    parser_classify.add_argument("--sampleStart", type=float, nargs='+', default=[0.3], help="Percentage(s) of duration of the sample")
+    parser_classify.add_argument("--sampleDuration", type=int, nargs='+', default=[10], help="Time(s) in seconds for the sample duration")
+    parser_classify.add_argument("--noiseLevel", type=float, nargs='+', default=[1.0], help="Percentage(s) of noise to add")
 
     args = parser.parse_args()
 
-    result = main(args.process, args.compressor, args.wavFile, args.sampleStart, args.sampleDuration, args.noiseLevel)
+    if args.process == '0':
+        result = main(0)
+    elif args.process == '1':
+        result = main(1, args.compressor, args.wavFile, args.sampleStart, args.sampleDuration, args.noiseLevel)
+
     pp(result[1])
     print(result[1])
