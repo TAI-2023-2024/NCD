@@ -11,10 +11,6 @@ python taizam.py <process_number>
 ```
 **(Process) 0:** Process to generate the database
 
-**Example:**
-```
-python taizam.py 0
-```
 
 **Classify Input File**
 To classify an input WAV file based on the generated database:
