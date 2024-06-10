@@ -1,3 +1,0 @@
-D:/David/MEI/Semester 2/TAI/NCD/cmake-build-debug/CMakeFiles/NCD.dir
-D:/David/MEI/Semester 2/TAI/NCD/cmake-build-debug/CMakeFiles/edit_cache.dir
-D:/David/MEI/Semester 2/TAI/NCD/cmake-build-debug/CMakeFiles/rebuild_cache.dir
